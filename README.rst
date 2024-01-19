@@ -8,6 +8,7 @@ Examples of **valid** combinations:
 
 - 123_Abc_456_Def_789_ghi
 - 789_ghi_123_abc_456_Def
+- 789ghi_123_abc456_Def
 
 Examples of **invalid** combinations:
 
