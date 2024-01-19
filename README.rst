@@ -14,3 +14,25 @@ Examples of **invalid** combinations:
 
 - 123_abc_123_Def_456_ghi
 - 456_def_789_Def_123_Abc
+
+.. contents:: **Contents**
+   :depth: 3
+   :local:
+   :backlinks: top
+
+Dependencies
+============
+* **Platforms:** Linux, macOS
+* **Python** >=3.8
+* `7-Zip`_
+
+Script usage
+============
+
+License
+=======
+This program is licensed under the MIT License. For more details see the `LICENSE`_ file in the repository.
+
+.. URLs
+.. _7-Zip: https://www.7-zip.org/
+.. _LICENSE: ./LICENSE
