@@ -9,7 +9,7 @@ Examples of valid combinations:
 - 123_Abc_456_Def
 - 789_ghi_123_abc
 
-Examples invalid combinations:
+Examples of invalid combinations:
 
 - 123_abc_123_Def
 - 456_def_789_Def
