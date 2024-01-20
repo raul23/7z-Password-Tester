@@ -33,7 +33,7 @@ def compute_md5(file_path):
 def process_password_sublist(filename, thread_id, password_sublist):
     # TODO: necessary to put global?
     global g_stop_threads, g_passwords_tested
-    
+
     for i, password in enumerate(password_sublist):
         print(f"[thread_{thread_id}] Processing password='{password}' "
               f"[{i}/{len(password_sublist)}]")
@@ -67,12 +67,12 @@ def setup_argparser():
     parser_opt_group.add_argument('-h', '--help', action='help',
                                   help='Show this help message and exit.')
     parser_opt_group.add_argument(
-        '-t', '--threads', dest='nb_threads', metavar='THREADS', default=NB_THREADS,
-        help='')
+        '-t', '--threads', dest='nb_threads', metavar='NB_THREADS', default=NB_THREADS,
+        help='Number of threads to use for processing the whole list of password combinations.')
 
     input_file_group = parser.add_argument_group(title='Input file')
     input_file_group.add_argument(
-        'input', dest='input_filename',
+        'input',
         help='Path of the 7z file for which password combinations will be '
              'tested.')
 
@@ -142,7 +142,7 @@ def generate_combinations():
 
 def main():
     global g_stop_threads
-    
+
     threads = []
     exit_code = 0
     md5_hash = None
@@ -150,9 +150,9 @@ def main():
     try:
         parser = setup_argparser()
         args = parser.parse_args()
-        
+
         ipdb.set_trace()
-        
+
         md5_hash = compute_md5(args.input_filename)
         with open(f'{md5_hash}.pkl', 'rb') as f:
             combined_passwords = pickle.load(f)
@@ -180,9 +180,9 @@ def main():
         # Wait for all threads to finish
         for thread in threads:
             thread.join()
-        
+
         ipdb.set_trace()
-        
+
         combined_passwords = []
         for password_list in g_passwords_tested.values():
             combined_passwords.extend(password_list)
