@@ -28,6 +28,23 @@ Dependencies
 
 Script usage
 ============
+To display the script's list of options and their descriptions::
+
+    $ python script.py -h
+    usage: script.py [OPTIONS] {7z_filepath}
+
+    Script that generates combinations of passwords according to a predefined pattern and tests them for a 7z file.
+   
+    Optional arguments:
+      -h, --help                           Show this help message and exit.
+      -t NB_THREADS, --threads NB_THREADS  Number of threads to use for processing the whole list of password combinations.
+   
+    Input file:
+      7z_filepath                          Path of the 7z file upon which password combinations will be tested.
+
+To generate and test all possible password combinations satisfying the predefined pattern using 20 threads::
+
+   $ python script.py my_doc.7z -t 20
 
 License
 =======
