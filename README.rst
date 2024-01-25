@@ -97,6 +97,12 @@ along with all the passwords that were tested so far::
    Saving file
    Program exited with 0
 
+If you re-run the script after the password was already found::
+
+   $ python script.py my_doc.7z
+   Password was already found: 123Abc456Def789Ghi
+   Program exited with 0
+
 License
 =======
 This program is licensed under the MIT License. For more details see the `LICENSE`_ file in the repository.
