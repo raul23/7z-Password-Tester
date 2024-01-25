@@ -73,7 +73,7 @@ def setup_argparser():
     input_file_group = parser.add_argument_group(title='Input file')
     input_file_group.add_argument(
         'input',
-        help='Path of the 7z file for which password combinations will be '
+        help='Path of the 7z file upon which password combinations will be '
              'tested.')
 
     return parser
