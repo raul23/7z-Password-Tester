@@ -3,6 +3,7 @@ import hashlib
 import os
 import pickle
 import subprocess
+import sys
 import threading
 
 from itertools import product
@@ -219,7 +220,10 @@ def main():
             for thread in threads:
                 thread.join()
 
-        if md5_hash is None:
+        if md5_hash is None and exit_code == 0:
+            # e.g. python script -h
+            sys.exit(0)
+        elif md5_hash is None:
             print('Warning: md5 hash for the given file is None!')
             return 1
 
