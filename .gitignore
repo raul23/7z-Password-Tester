@@ -162,3 +162,4 @@ cython_debug/
 # Custom
 my_doc.txt
 my_doc.7z
+*.pkl
