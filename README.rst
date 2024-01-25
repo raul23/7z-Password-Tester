@@ -73,7 +73,8 @@ At any moment, you can stop the program with ``Ctrl`` + ``C``::
 
   - The script saves in a pickle file all the password combinations that were tried so far. Hence, if you 
     stop the program and re-run it, the script will skip all the passwords that were already tested.
-  - The name of the pickle file is the MD5 hash of the 7z file.
+  - The name of the pickle file consists of the MD5 hash of the 7z file and its filename, 
+    e.g. ``0ee30c011f98687022f96f656dd004fg_my_doc.pkl``
 
 | 
 
