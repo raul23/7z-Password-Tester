@@ -7,7 +7,7 @@ import threading
 
 from itertools import product
 
-import ipdb
+# import ipdb
 
 # =====================
 # Default config values
@@ -39,6 +39,7 @@ def process_password_sublist(filename, thread_id, password_sublist):
         print(f"[thread_{thread_id}] Processing password='{password}' "
               f"[{i}/{len(password_sublist)}]")
         result_code = test_7z_archive(filename, password)
+        g_passwords_tested_by_threads[thread_id].append(password)
         if result_code == 0:
             g_stop_all_threads = True
             print(f'Found the password: {password}')
@@ -46,7 +47,6 @@ def process_password_sublist(filename, thread_id, password_sublist):
         else:
             # print('Error occurred')
             pass
-        g_passwords_tested_by_threads[thread_id].append(password)
         if g_stop_all_threads:
             break
     return 0
@@ -70,7 +70,8 @@ def setup_argparser():
     parser_opt_group.add_argument('-h', '--help', action='help',
                                   help='Show this help message and exit.')
     parser_opt_group.add_argument(
-        '-t', '--threads', dest='nb_threads', metavar='NB_THREADS', default=NB_THREADS,
+        '-t', '--threads', dest='nb_threads', metavar='NB_THREADS',
+        default=NB_THREADS, type=int,
         help='Number of threads to use for processing the whole list of password combinations.')
 
     input_file_group = parser.add_argument_group(title='Input file')
@@ -152,11 +153,12 @@ def generate_combinations():
 
 
 def main():
-    global g_stop_threads, g_passwords_tested_by_threads, g_password_found
+    global g_stop_all_threads, g_passwords_tested_by_threads, g_password_found
 
     threads = []
     exit_code = 0
     md5_hash = None
+    passwords_tested = []
 
     try:
         parser = setup_argparser()
@@ -167,49 +169,67 @@ def main():
             with open(f'{md5_hash}.pkl', 'rb') as f:
                 data = pickle.load(f)
                 g_password_found = data['password_found']
-                combined_passwords = data['passwords_tested']
+                passwords_tested = data['passwords_tested']
         except FileNotFoundError:
-            combined_passwords = []
+            pass
 
         if g_password_found:
             print(f'Password was already found: {g_password_found}')
             return exit_code
         else:
-            # Get all combinations
-            all_combinations = generate_combinations() + combined_passwords
+            # Get all combinations minus those already tested in previous runs
+            all_combinations = generate_combinations()
+            nb_before = len(all_combinations)
+            all_combinations = set(all_combinations) - set(passwords_tested)
+            nb_after = len(all_combinations)
+            if nb_before - nb_after > 0:
+                print(f'{nb_before - nb_after} combinations were rejected '
+                      'because they were already processed in previous runs')
 
-            passwords_to_test = sorted(set(all_combinations))
+            passwords_to_test = sorted(all_combinations)
             password_sublists = list(split_list(passwords_to_test, args.nb_threads))
-            print(f'Number of passwords = {len(passwords_to_test)}')
+            print(f'Number of passwords to test: {len(passwords_to_test)}')
             for i in range(args.nb_threads):
                 g_passwords_tested_by_threads.setdefault(i, [])
                 thread = threading.Thread(target=process_password_sublist, args=(args.input_filename, i, password_sublists[i],))
                 threads.append(thread)
                 thread.start()
+
+            # Wait for all threads to finish
+            for thread in threads:
+                thread.join()
     except KeyboardInterrupt:
-        print('\nProgram stopped!')
+        print('\nWarning: Program stopped!')
         exit_code = 2
     except Exception as e:
         print('Program interrupted!')
-        print(e)
+        if e:
+            print(f'Error: {e}')
         exit_code = 1
-    else:
-        g_stop_all_threads = True
-        # Wait for all threads to finish
-        for thread in threads:
-            thread.join()
+    finally:
+        if exit_code != 0:
+            g_stop_all_threads = True
+            # Wait for all threads to finish
+            for thread in threads:
+                thread.join()
 
-        combined_passwords = []
+        if md5_hash is None:
+            print('Warning: md5 hash for the given file is None!')
+            return 1
+
+        combined_passwords = passwords_tested
+        nb_before = len(passwords_tested)
         for password_list in g_passwords_tested_by_threads.values():
             combined_passwords.extend(password_list)
+        nb_after = len(combined_passwords)
 
-        ipdb.set_trace()
-
-        # TODO: test that `md5_hash` is not None
-        with open(f'{md5_hash}.pkl', 'wb') as f:
-            data = {'password_found': g_password_found,
-                    'passwords_tested': list(set(combined_passwords))}
-            pickle.dump(data, f)
+        if combined_passwords:
+            print(f'{nb_after - nb_before} passwords were tested')
+            with open(f'{md5_hash}.pkl', 'wb') as f:
+                data = {'password_found': g_password_found,
+                        'passwords_tested': list(set(combined_passwords))}
+                print('Saving file')
+                pickle.dump(data, f)
 
     return exit_code
 
