@@ -100,7 +100,7 @@ along with all the passwords that were tested so far::
    Saving file
    Program exited with 0
 
-If you re-run the script after the password was already found::
+If you re-run the script after the password was found::
 
    $ python script.py my_doc.7z
    Password was already found: 123Abc456Def789Ghi
