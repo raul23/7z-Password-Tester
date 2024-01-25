@@ -7,6 +7,7 @@ import sys
 import threading
 
 from itertools import product
+from pathlib import Path
 
 # import ipdb
 
@@ -31,6 +32,10 @@ def compute_md5(file_path):
     return md5_hash.hexdigest()
 
 
+def get_default_message(default_value):
+    return f' (default: {default_value})'
+
+
 # Thread function
 def process_password_sublist(filename, thread_id, password_sublist):
     # TODO: necessary to put global?
@@ -43,7 +48,6 @@ def process_password_sublist(filename, thread_id, password_sublist):
         g_passwords_tested_by_threads[thread_id].append(password)
         if result_code == 0:
             g_stop_all_threads = True
-            print(f'Found the password: {password}')
             g_password_found = password
         else:
             # print('Error occurred')
@@ -74,7 +78,7 @@ def setup_argparser():
         '-t', '--threads', dest='nb_threads', metavar='NB_THREADS',
         default=NB_THREADS, type=int,
         help='Number of threads to use for processing the whole list of '
-             'password combinations.')
+             'password combinations.' + get_default_message(NB_THREADS))
 
     input_file_group = parser.add_argument_group(title='Input file')
     input_file_group.add_argument(
@@ -163,7 +167,9 @@ def main():
     threads = []
     exit_code = 0
     md5_hash = None
+    md5_filename = None
     passwords_tested = []
+    password_already_found = False
 
     try:
         parser = setup_argparser()
@@ -171,7 +177,8 @@ def main():
 
         md5_hash = compute_md5(args.input_filename)
         try:
-            with open(f'{md5_hash}.pkl', 'rb') as f:
+            md5_filename = f'{md5_hash}_{Path(args.input_filename).stem}.pkl'
+            with open(md5_filename, 'rb') as f:
                 data = pickle.load(f)
                 g_password_found = data['password_found']
                 passwords_tested = data['passwords_tested']
@@ -180,7 +187,7 @@ def main():
 
         if g_password_found:
             print(f'Password was already found: {g_password_found}')
-            return exit_code
+            password_already_found = True
         else:
             # Get all combinations minus those already tested in previous runs
             all_combinations = generate_combinations()
@@ -193,7 +200,8 @@ def main():
 
             passwords_to_test = sorted(all_combinations)
             password_sublists = list(split_list(passwords_to_test, args.nb_threads))
-            print(f'Number of passwords to test: {len(passwords_to_test)}')
+            print(f'Total number of passwords to test: {len(passwords_to_test)}')
+            print(f'Number of threads used to test passwords: {args.nb_threads}')
             for i in range(args.nb_threads):
                 g_passwords_tested_by_threads.setdefault(i, [])
                 thread = threading.Thread(target=process_password_sublist,
@@ -210,10 +218,13 @@ def main():
         exit_code = 2
     except Exception as e:
         print('Program interrupted!')
-        if e:
+        if e.__str__():
             print(f'Error: {e}')
         exit_code = 1
     finally:
+        if password_already_found:
+            return exit_code
+
         if exit_code != 0:
             g_stop_all_threads = True
             # Wait for all threads to finish
@@ -224,8 +235,11 @@ def main():
             # e.g. python script -h
             sys.exit(0)
         elif md5_hash is None:
-            print('Warning: md5 hash for the given file is None!')
+            print("Warning: md5 hash for the given file couldn't be computed")
             return 1
+
+        if g_password_found:
+            print(f'\n**** Found the password: {g_password_found} ****\n')
 
         combined_passwords = passwords_tested
         nb_before = len(passwords_tested)
@@ -235,7 +249,7 @@ def main():
 
         if combined_passwords:
             print(f'{nb_after - nb_before} passwords were tested')
-            with open(f'{md5_hash}.pkl', 'wb') as f:
+            with open(md5_filename, 'wb') as f:
                 data = {'password_found': g_password_found,
                         'passwords_tested': list(set(combined_passwords))}
                 print('Saving file')
