@@ -42,7 +42,8 @@ To display the script's list of options and their descriptions::
     Input file:
       7z_filepath                          Path of the 7z file upon which password combinations will be tested.
 
-To generate and test all possible password combinations satisfying the predefined pattern using 20 threads::
+To generate and test all possible password combinations satisfying the predefined pattern using **20 threads** 
+(by default, the script uses 10 threads to test all passwords)::
 
    $ python script.py my_doc.7z -t 20
 
@@ -50,7 +51,8 @@ At any moment, you can stop the program with ``Ctrl`` + ``C``::
 
    $ python script.py my_doc.7z
    855 combinations were rejected because they were already processed in previous runs
-   Number of passwords to test: 8361
+   Total number of passwords to test: 8361
+   Number of threads used to test passwords: 10
    [thread_0] Processing password='123Abc789_Ghi456_def' [0/837]
    [thread_1] Processing password='123_Abc_789_ghi_456_def' [0/836]
    [thread_2] Processing password='123_def_456Ghi789_abc' [0/836]
@@ -78,8 +80,9 @@ At any moment, you can stop the program with ``Ctrl`` + ``C``::
 `:star:` If the script finds the password, all threads are stopped and the password is saved in the pickle file
 along with all the passwords that were tested so far::
 
-   python script.py my_doc.7z
-   Number of passwords to test: 9216
+   $ python script.py my_doc.7z
+   Total number of passwords to test: 9216
+   Number of threads used to test passwords: 10
    [thread_0] Processing password='123Abc456Def789Ghi' [0/922]
    [thread_1] Processing password='123_Abc_456_Ghi789_def' [0/922]
    [thread_2] Processing password='123_def456abc_789Ghi' [0/922]
