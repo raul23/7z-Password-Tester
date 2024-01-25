@@ -46,6 +46,35 @@ To generate and test all possible password combinations satisfying the predefine
 
    $ python script.py my_doc.7z -t 20
 
+At any moment, you can stop the program with ``Ctrl`` + ``C``::
+
+   $ python script.py my_doc.7z
+   855 combinations were rejected because they were already processed in previous runs
+   Number of passwords to test: 8361
+   [thread_0] Processing password='123Abc789_Ghi456_def' [0/837]
+   [thread_1] Processing password='123_Abc_789_ghi_456_def' [0/836]
+   [thread_2] Processing password='123_def_456Ghi789_abc' [0/836]
+   [thread_3] Processing password='123ghi456Abc_789def' [0/836]
+   [thread_4] Processing password='456Ghi_123_def789Abc' [0/836]
+   [thread_5] Processing password='456_abc789_Def123ghi' [0/836]
+   [thread_6] Processing password='456abc_789_ghi_123_def' [0/836]
+   [thread_7] Processing password='789Def456_ghi_123_Abc' [0/836]
+   [thread_8] Processing password='789_Ghi123_abc_456Def' [0/836]
+   [thread_9] Processing password='789_ghi_123abc_456Def' [0/836]
+   ^C
+   Warning: Program stopped!
+   10 passwords were tested
+   Saving file
+   Program exited with 2
+
+|
+
+`:star:` 
+
+  - The script saves in a pickle file all the password combinations that were tried so far. Hence, if you 
+    stop the program and re-run it, the script will skip all the passwords that were already tested.
+  - The name of the pickle file is the MD5 hash of the 7z file.
+
 License
 =======
 This program is licensed under the MIT License. For more details see the `LICENSE`_ file in the repository.
