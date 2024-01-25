@@ -90,12 +90,10 @@ along with all the passwords that were tested so far::
    [thread_7] Processing password='789Def123abc_456_Ghi' [0/921]
    [thread_8] Processing password='789_Def_456Ghi_123_abc' [0/921]
    [thread_9] Processing password='789_ghi456_abc_123def' [0/921]
-   [thread_4] Processing password='456Ghi789_def123_Abc' [1/922]
-   [thread_7] Processing password='789Def123abc_456_ghi' [1/921]
-   [thread_2] Processing password='123_def456abc_789_Ghi' [1/922]
-   [thread_5] Processing password='456_abc123Def789ghi' [1/922]
-   Found the password: 123Abc456Def789Ghi
-   14 passwords were tested
+   
+   **** Found the password: 123Abc456Def789Ghi ****
+   
+   10 passwords were tested
    Saving file
    Program exited with 0
 
