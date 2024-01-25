@@ -72,7 +72,8 @@ def setup_argparser():
     parser_opt_group.add_argument(
         '-t', '--threads', dest='nb_threads', metavar='NB_THREADS',
         default=NB_THREADS, type=int,
-        help='Number of threads to use for processing the whole list of password combinations.')
+        help='Number of threads to use for processing the whole list of '
+             'password combinations.')
 
     input_file_group = parser.add_argument_group(title='Input file')
     input_file_group.add_argument(
@@ -140,9 +141,12 @@ def generate_combinations():
     letters1 = ['abc', 'Abc', '_abc', '_Abc']
     letters2 = ['def', 'Def', '_def', '_Def']
     letters3 = ['ghi', 'Ghi', '_ghi', '_Ghi']
-    letters = list(product(letters1, letters2, letters3)) + list(product(letters1, letters3, letters2)) + \
-              list(product(letters2, letters1, letters3)) + list(product(letters2, letters3, letters1)) + \
-              list(product(letters3, letters1, letters2)) + list(product(letters3, letters2, letters1))
+    letters = list(product(letters1, letters2, letters3)) + \
+              list(product(letters1, letters3, letters2)) + \
+              list(product(letters2, letters1, letters3)) + \
+              list(product(letters2, letters3, letters1)) + \
+              list(product(letters3, letters1, letters2)) + \
+              list(product(letters3, letters2, letters1))
     all_combinations = []
 
     for num_perm in numbers:
@@ -191,7 +195,9 @@ def main():
             print(f'Number of passwords to test: {len(passwords_to_test)}')
             for i in range(args.nb_threads):
                 g_passwords_tested_by_threads.setdefault(i, [])
-                thread = threading.Thread(target=process_password_sublist, args=(args.input_filename, i, password_sublists[i],))
+                thread = threading.Thread(target=process_password_sublist,
+                                          args=(args.input_filename, i,
+                                                password_sublists[i],))
                 threads.append(thread)
                 thread.start()
 
