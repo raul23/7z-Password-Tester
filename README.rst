@@ -67,13 +67,37 @@ At any moment, you can stop the program with ``Ctrl`` + ``C``::
    Saving file
    Program exited with 2
 
-|
-
-`:star:` 
+`:information_source:` 
 
   - The script saves in a pickle file all the password combinations that were tried so far. Hence, if you 
     stop the program and re-run it, the script will skip all the passwords that were already tested.
   - The name of the pickle file is the MD5 hash of the 7z file.
+
+| 
+
+`:star:` If the script finds the password, all threads are stopped and the password is saved in the pickle file
+along with all the passwords that were tested so far::
+
+   python script.py my_doc.7z
+   Number of passwords to test: 9216
+   [thread_0] Processing password='123Abc456Def789Ghi' [0/922]
+   [thread_1] Processing password='123_Abc_456_Ghi789_def' [0/922]
+   [thread_2] Processing password='123_def456abc_789Ghi' [0/922]
+   [thread_3] Processing password='123def_789Ghi_456_abc' [0/922]
+   [thread_4] Processing password='456Ghi789_def123Abc' [0/922]
+   [thread_5] Processing password='456_abc123Def789_ghi' [0/922]
+   [thread_6] Processing password='456abc_123_Ghi_789Def' [0/921]
+   [thread_7] Processing password='789Def123abc_456_Ghi' [0/921]
+   [thread_8] Processing password='789_Def_456Ghi_123_abc' [0/921]
+   [thread_9] Processing password='789_ghi456_abc_123def' [0/921]
+   [thread_4] Processing password='456Ghi789_def123_Abc' [1/922]
+   [thread_7] Processing password='789Def123abc_456_ghi' [1/921]
+   [thread_2] Processing password='123_def456abc_789_Ghi' [1/922]
+   [thread_5] Processing password='456_abc123Def789ghi' [1/922]
+   Found the password: 123Abc456Def789Ghi
+   14 passwords were tested
+   Saving file
+   Program exited with 0
 
 License
 =======
