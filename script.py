@@ -5,7 +5,7 @@ import pickle
 import subprocess
 import threading
 
-from itertools import permutations, product
+from itertools import product
 
 import ipdb
 
@@ -17,6 +17,7 @@ NB_THREADS = 10
 # Global variables
 g_stop_all_threads = False
 g_passwords_tested_by_threads = {}
+g_password_found = ''
 
 
 def compute_md5(file_path):
@@ -32,14 +33,16 @@ def compute_md5(file_path):
 # Thread function
 def process_password_sublist(filename, thread_id, password_sublist):
     # TODO: necessary to put global?
-    global g_stop_threads, g_passwords_tested
+    global g_stop_all_threads, g_passwords_tested_by_threads, g_password_found
 
     for i, password in enumerate(password_sublist):
         print(f"[thread_{thread_id}] Processing password='{password}' "
               f"[{i}/{len(password_sublist)}]")
         result_code = test_7z_archive(filename, password)
         if result_code == 0:
-            pass
+            g_stop_all_threads = True
+            print(f'Found the password: {password}')
+            g_password_found = password
         else:
             # print('Error occurred')
             pass
@@ -51,7 +54,7 @@ def process_password_sublist(filename, thread_id, password_sublist):
 
 def setup_argparser():
     width = os.get_terminal_size().columns - 5
-    name_input = 'input_7z_file'
+    name_input = '7z_filepath'
     usage_msg = f'%(prog)s [OPTIONS] {{{name_input}}}'
     desc_msg = 'Script that generates combinations of passwords according to ' \
                'a predefined pattern and tests them for a 7z file.\n\n' \
@@ -72,7 +75,7 @@ def setup_argparser():
 
     input_file_group = parser.add_argument_group(title='Input file')
     input_file_group.add_argument(
-        'input',
+        'input_filename', metavar=name_input,
         help='Path of the 7z file upon which password combinations will be '
              'tested.')
 
@@ -120,28 +123,36 @@ def test_7z_archive(filename, password):
 
 
 def generate_combinations():
-    numbers = ['123', '456', '789']
-    letters1 = ['abc', 'Abc']
-    letters2 = ['def', 'Def']
-    letters3 = ['ghi', 'Ghi']
+    numbers123_1 = ['123']
+    numbers123_2 = ['123', '_123']
+    numbers456_1 = ['456']
+    numbers456_2 = ['456', '_456']
+    numbers789_1 = ['789']
+    numbers789_2 = ['789', '_789']
+    numbers = list(product(numbers123_1, numbers456_2, numbers789_2)) + \
+              list(product(numbers123_1, numbers789_2, numbers456_2)) + \
+              list(product(numbers456_1, numbers123_2, numbers789_2)) + \
+              list(product(numbers456_1, numbers789_2, numbers123_2)) + \
+              list(product(numbers789_1, numbers123_2, numbers456_2)) + \
+              list(product(numbers789_1, numbers456_2, numbers123_2))
+
+    letters1 = ['abc', 'Abc', '_abc', '_Abc']
+    letters2 = ['def', 'Def', '_def', '_Def']
+    letters3 = ['ghi', 'Ghi', '_ghi', '_Ghi']
     letters = list(product(letters1, letters2, letters3)) + list(product(letters1, letters3, letters2)) + \
               list(product(letters2, letters1, letters3)) + list(product(letters2, letters3, letters1)) + \
               list(product(letters3, letters1, letters2)) + list(product(letters3, letters2, letters1))
     all_combinations = []
 
-    for num_perm in permutations(numbers):
+    for num_perm in numbers:
         for letter_perm in letters:
-            for underscore in ['', '_']:
-                combined = []
-                for num, letter in zip(num_perm, letter_perm):
-                    combined.append(num + underscore + letter)
-                all_combinations.append(''.join(combined))
-                all_combinations.append('_'.join(combined))
+            combined = [num+letter for num, letter in zip(num_perm, letter_perm)]
+            all_combinations.append(''.join(combined))
     return all_combinations
 
 
 def main():
-    global g_stop_threads
+    global g_stop_threads, g_passwords_tested_by_threads, g_password_found
 
     threads = []
     exit_code = 0
@@ -151,23 +162,30 @@ def main():
         parser = setup_argparser()
         args = parser.parse_args()
 
-        ipdb.set_trace()
-
         md5_hash = compute_md5(args.input_filename)
-        with open(f'{md5_hash}.pkl', 'rb') as f:
-            combined_passwords = pickle.load(f)
+        try:
+            with open(f'{md5_hash}.pkl', 'rb') as f:
+                data = pickle.load(f)
+                g_password_found = data['password_found']
+                combined_passwords = data['passwords_tested']
+        except FileNotFoundError:
+            combined_passwords = []
 
-        # Get all combinations
-        all_combinations = generate_combinations() + combined_passwords
+        if g_password_found:
+            print(f'Password was already found: {g_password_found}')
+            return exit_code
+        else:
+            # Get all combinations
+            all_combinations = generate_combinations() + combined_passwords
 
-        passwords_to_test = list(set(all_combinations))
-        password_sublists = list(split_list(passwords_to_test, args.nb_threads))
-        print(f'Number of passwords = {len(passwords)}')
-        for i in range(args.nb_threads):
-            g_passwords_tested.setdefault(i, [])
-            thread = threading.Thread(target=process_password_sublist, args=(args.input_filename, i, password_sublists[i],))
-            threads.append(thread)
-            thread.start()
+            passwords_to_test = sorted(set(all_combinations))
+            password_sublists = list(split_list(passwords_to_test, args.nb_threads))
+            print(f'Number of passwords = {len(passwords_to_test)}')
+            for i in range(args.nb_threads):
+                g_passwords_tested_by_threads.setdefault(i, [])
+                thread = threading.Thread(target=process_password_sublist, args=(args.input_filename, i, password_sublists[i],))
+                threads.append(thread)
+                thread.start()
     except KeyboardInterrupt:
         print('\nProgram stopped!')
         exit_code = 2
@@ -181,19 +199,22 @@ def main():
         for thread in threads:
             thread.join()
 
-        ipdb.set_trace()
-
         combined_passwords = []
-        for password_list in g_passwords_tested.values():
+        for password_list in g_passwords_tested_by_threads.values():
             combined_passwords.extend(password_list)
+
+        ipdb.set_trace()
 
         # TODO: test that `md5_hash` is not None
         with open(f'{md5_hash}.pkl', 'wb') as f:
-            pickle.dump(list(set(combined_passwords)), f)
+            data = {'password_found': g_password_found,
+                    'passwords_tested': list(set(combined_passwords))}
+            pickle.dump(data, f)
 
     return exit_code
 
 
 if __name__ == '__main__':
+    # password used for testing: 123Abc456Def789Ghi
     retcode = main()
     print(f'Program exited with {retcode}')
