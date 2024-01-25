@@ -160,6 +160,6 @@ cython_debug/
 #.idea/
 
 # Custom
-my_doc.txt
-my_doc.7z
+my_doc*.txt
+my_doc*.7z
 *.pkl
