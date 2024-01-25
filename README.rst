@@ -37,7 +37,7 @@ To display the script's list of options and their descriptions::
    
     Optional arguments:
       -h, --help                           Show this help message and exit.
-      -t NB_THREADS, --threads NB_THREADS  Number of threads to use for processing the whole list of password combinations.
+      -t NB_THREADS, --threads NB_THREADS  Number of threads to use for processing the whole list of password combinations. (default: 10)
    
     Input file:
       7z_filepath                          Path of the 7z file upon which password combinations will be tested.
